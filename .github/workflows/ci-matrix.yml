@@ -49,6 +49,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-cov
 
+      - name: Verificar configuración del Secret
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+        run: |
+          if [ -n "$API_KEY" ]; then
+            echo "API Key configurada correctamente"
+          else
+            echo "API Key no encontrada"
+            exit 1
+          fi
+
       - name: Ejecutar tests con reporte de cobertura
         run: pytest test_app.py -v --cov=app --cov-report=xml
 
