@@ -1,0 +1,64 @@
+name: 05 - Despliegue a GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Construir sitio
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Preparar archivos del sitio
+        run: |
+          mkdir public
+          cp app.py public/
+          cp test_app.py public/
+          cat > public/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+            <meta charset="UTF-8">
+            <title>Mi proyecto</title>
+          </head>
+          <body>
+            <h1>Mi proyecto en GitHub Pages</h1>
+            <p>Despliegue realizado correctamente con GitHub Actions.</p>
+          </body>
+          </html>
+          EOF
+
+      - name: Subir artefacto de Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public/
+
+  deploy:
+    name: Desplegar en GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Publicar sitio
+        id: deployment
+        uses: actions/deploy-pages@v4
